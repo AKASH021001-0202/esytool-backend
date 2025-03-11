@@ -7,7 +7,8 @@ const dbHost = process.env.MONGOHOST || "localhost";
 const dbPort = process.env.MONGOPORT || "27017";
 
 // Construct MongoDB URL using Railway-provided variables
-const cloudUri = `mongodb://${dbUser}:${dbPassword}@${dbHost}:${dbPort}/?authSource=admin`;
+const cloudUri = `"mongodb://mongo:fZAxBdTrRwkQDadQUvKegCGxwMMsAqMb@your-railway-host:27017/admin"
+`;
 
 const mongooseDb = async () => {
     try {

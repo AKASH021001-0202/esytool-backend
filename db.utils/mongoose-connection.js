@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 import 'dotenv/config'
+
+dotenv.config();
 const dbName =process.env.DB_NAME;
 
 const  dnUserName = process.env.DB_USERNAME || "";

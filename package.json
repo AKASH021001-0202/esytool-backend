@@ -1,5 +1,5 @@
 {
-  "name": "password-reset",
+  "name": "esytool-backend",
   "version": "1.0.0",
   "description": "write api",
   "main": "expressserver.js",

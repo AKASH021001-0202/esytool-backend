@@ -5,42 +5,44 @@ import dotenv from "dotenv";
 import { Usermodel } from "../../db.utils/model.js";
 
 dotenv.config();
-
 const LoginRouter = express.Router();
 
 LoginRouter.post("/", async (req, res) => {
   const { email, password } = req.body;
-  console.log("Login Request:", req.body);
-
+  console.log("Login Request Received:", req.body);
+  
+ 
   try {
-    const user = await Usermodel.findOne({ email });
-    console.log("User Record:", user);
+    const user = await Usermodel.findOne({ email: email.toLowerCase() }).select("+password");
+    console.log("User Found:", user);
+  console.log("Provided Password:", password);
 
     if (!user) {
-      return res.status(400).json({ msg: "Invalid credentials" });
+      console.log("Invalid User");
+      return res.status(400).json({ message: "Invalid User" });
     }
 
-    // Compare the hashed password with the entered password
-    const isMatch = await bcrypt.compare(password, user.password);
+    // Compare passwords
+    const trimmedPassword = password.trim();
+    const isMatch = await bcrypt.compare(trimmedPassword, user.password);
+    console.log("Stored Hashed Password:", user.password);
+    console.log("Password Match:", isMatch);
+
     if (!isMatch) {
-      return res.status(400).json({ msg: "Invalid credentials" });
+      console.log("Invalid Credentials");
+      return res.status(400).json({ message: "Invalid credentials" });
     }
 
     // Generate JWT token
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
     console.log("Generated Token:", token);
 
-    res.json({ token });
+    return res.json({ token });
   } catch (err) {
     console.error("Login error:", err);
-    res.status(500).json({ msg: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 });
 
-// Middleware to set Cache-Control header
-LoginRouter.use((req, res, next) => {
-  res.setHeader("Cache-Control", "no-store");
-  next();
-});
 
 export default LoginRouter;

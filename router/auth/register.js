@@ -24,6 +24,7 @@ RegisterRouter.post("/", async (req, res) => {
     // Hash the password before storing
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
+    console.log("Generated Hash:", hashedPassword);
 
     const user = new Usermodel({
       name,

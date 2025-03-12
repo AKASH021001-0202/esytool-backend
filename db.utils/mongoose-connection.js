@@ -1,23 +1,23 @@
 import mongoose from "mongoose";
-import 'dotenv/config';
+import 'dotenv/config'
+const dbName =process.env.DB_NAME;
 
-const dbUser = process.env.MONGOUSER || "mongo";
-const dbPassword = process.env.MONGOPASSWORD || "";
-const dbHost = process.env.MONGOHOST || "localhost";
-const dbPort = process.env.MONGOPORT || "27017";
+const  dnUserName = process.env.DB_USERNAME || "";
 
-// Construct MongoDB URL using Railway-provided variables
-const cloudUri = `"mongodb://mongo:fZAxBdTrRwkQDadQUvKegCGxwMMsAqMb@your-railway-host:27017/admin"
-`;
+const  dbPassword = process.env.DB_PASSWORD || "";
+const dbCluster = process.env.DB_CLUSTER || "localhost:27017";
 
+const cloudUri =`mongodb+srv://${dnUserName}:${dbPassword}@${dbCluster}/${dbName}?retryWrites=true&w=majority&appName=Cluster0`;
 const mongooseDb = async () => {
-    try {
+    try{
         await mongoose.connect(cloudUri);
-        console.log("✅ MongoDB Connected Successfully!");
-    } catch (err) {
-        console.error("❌ MongoDB Connection Failed:", err);
+        
+        console.log("mongodb:connect success")
+    }
+    catch(err){
+        console.log("mongodb:connect failed");
         process.exit(1);
     }
-};
+}
 
 export default mongooseDb;

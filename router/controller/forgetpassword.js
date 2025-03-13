@@ -19,7 +19,7 @@ ForgotPasswordRouter.post("/", async (req, res) => {
 
     // Generate a reset token
     const resetToken = crypto.randomBytes(32).toString("hex");
-    const resetTokenExpiry = Date.now() + 3600000; // 1 hour expiry
+    const resetTokenExpiry = Date.now() + 3600000; 
 
     user.resetPasswordToken = resetToken;
     user.resetPasswordExpires = resetTokenExpiry;
@@ -29,12 +29,11 @@ ForgotPasswordRouter.post("/", async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: process.env.EMAIL_USER, // Your email
-        pass: process.env.EMAIL_PASS, // Your email password or app password
+        user: process.env.EMAIL_USER, 
+        pass: process.env.EMAIL_PASS, 
       },
     });
 
-    // ✅ Corrected reset link
     const resetLink = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
     await transporter.sendMail({
@@ -44,9 +43,14 @@ ForgotPasswordRouter.post("/", async (req, res) => {
       html: `<p>You requested a password reset. Click the link below:</p>
              <a href="${resetLink}">${resetLink}</a>
              <p>This link will expire in 1 hour.</p>`,
+    }, (error, info) => {
+      if (error) {
+        console.error("Error sending email:", error);
+        return res.status(500).json({ msg: "Failed to send email" });
+      }
+      console.log("Email sent: " + info.response);
+      res.status(200).json({ msg: "Password reset email sent." });
     });
-
-    res.status(200).json({ msg: "Password reset email sent." });
   } catch (error) {
     console.error("Forgot Password Error:", error);
     res.status(500).json({ msg: "Server error" });

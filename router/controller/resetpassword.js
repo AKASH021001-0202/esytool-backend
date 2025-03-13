@@ -1,34 +1,38 @@
-import express from 'express';
-import bcrypt from 'bcryptjs';
-import { Usermodel } from '../../db.utils/model.js';
+import express from "express";
+import bcrypt from "bcryptjs";
+import { Usermodel } from "../../db.utils/model.js";
 
-const ResetPassword = express.Router();
+const ResetPasswordRouter = express.Router();
 
-ResetPassword.post('/', async (req, res) => {
-  const { token, newPassword } = req.body;
+ResetPasswordRouter.post("/:token", async (req, res) => {
+  const { token } = req.params;
+  const { newPassword } = req.body;
 
   try {
     const user = await Usermodel.findOne({
-      resetToken: token,
-      resetTokenExpire: { $gt: Date.now() }, 
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() }, // Check if token is still valid
     });
 
     if (!user) {
-      return res.status(400).json({ message: 'Invalid or expired token' });
+      return res.status(400).json({ msg: "Invalid or expired token" });
     }
 
-    // Hash new password
-    user.password = await bcrypt.hash(newPassword, 10);
-    user.resetToken = null;
-    user.resetTokenExpire = null;
+    // Hash the new password
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+
+    // Remove reset token after successful password update
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+
     await user.save();
 
-    return res.json({ message: 'Password reset successful' });
-
+    res.status(200).json({ msg: "Password reset successful. You can now log in." });
   } catch (error) {
-    console.error('Error resetting password:', error);
-    return res.status(500).json({ message: 'Error resetting password' });
+    console.error("Reset Password Error:", error);
+    res.status(500).json({ msg: "Server error" });
   }
 });
 
-export default ResetPassword;
+export default ResetPasswordRouter;

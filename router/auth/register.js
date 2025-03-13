@@ -1,7 +1,6 @@
 import express from "express";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
-
 import { Usermodel } from "../../db.utils/model.js";
 
 dotenv.config();
@@ -12,34 +11,49 @@ RegisterRouter.post("/", async (req, res) => {
   const { email, password, phone, name } = req.body;
 
   try {
+    // Validate required fields
     if (!email || !password || !phone || !name) {
-      return res.status(400).json({ msg: "Name, email, password, and phone are required" });
+      return res.status(400).json({ msg: "Name, email, password, and phone are required." });
     }
 
-    const existingUser = await Usermodel.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ msg: "User already registered" });
+    // Check if email already exists
+    const existingUserByEmail = await Usermodel.findOne({ email });
+    if (existingUserByEmail) {
+      return res.status(400).json({ msg: "User with this email already exists." });
     }
 
-    // Hash the password before storing
+    // Check if name already exists (if still unique)
+    const existingUserByName = await Usermodel.findOne({ name });
+    if (existingUserByName) {
+      return res.status(400).json({ msg: "Name is already taken. Choose a different name." });
+    }
+
+    // Hash the password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-    console.log("Generated Hash:", hashedPassword);
 
+    // Create a new user
     const user = new Usermodel({
       name,
       email,
       phone,
       password: hashedPassword,
-      isActive: true, // Directly activating the account since there's no verification
+      isActive: true, // Directly activating the account
     });
 
     await user.save();
 
-    res.status(201).json({ msg: "User registered successfully." });
+    return res.status(201).json({ msg: "User registered successfully." });
+
   } catch (err) {
     console.error("Registration error:", err);
-    res.status(500).json({ message: "Server error" });
+
+    // Handle duplicate key error (E11000)
+    if (err.code === 11000) {
+      return res.status(400).json({ msg: "Duplicate entry. Email or Name is already taken." });
+    }
+
+    return res.status(500).json({ msg: "Server error. Please try again later." });
   }
 });
 

@@ -24,19 +24,20 @@ ForgotPasswordRouter.post("/", async (req, res) => {
     user.resetPasswordToken = resetToken;
     user.resetPasswordExpires = resetTokenExpiry;
     await user.save();
+    console.log(user);
 
     // Send email with the reset link
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
         user: process.env.EMAIL_USER, 
-        pass: process.env.EMAIL_PASS, 
+        pass: process.env.GMAIL_PASS, 
       },
     });
 
     const resetLink = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
-
-    await transporter.sendMail({
+console.log(resetLink)
+    transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: email,
       subject: "Password Reset Request",
